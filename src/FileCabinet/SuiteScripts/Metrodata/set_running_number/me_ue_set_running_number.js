@@ -49,7 +49,7 @@ define(["N/record", "N/query", "N/search", "N/format"], function (record, query,
                     FROM transaction
                     where 
                         recordtype = '${rec.type}' and 
-                        EXTRACT(YEAR FROM trandate) = ${get_year} and
+                        /*EXTRACT(YEAR FROM trandate) = ${get_year} and [line sql dicomment karena error ketika ada kasus edit tanggal ke tahun sebelumnya pada existing transaksi]*/
                         tranid like '${prefix}%'
                     ORDER BY id DESC
                     FETCH NEXT 1 ROWS ONLY;`
@@ -79,7 +79,7 @@ define(["N/record", "N/query", "N/search", "N/format"], function (record, query,
                     FROM transaction
                     where 
                     	recordtype = '${rec.type}' and 
-                    	EXTRACT(YEAR FROM trandate) = ${get_year} and
+                    	/*EXTRACT(YEAR FROM trandate) = ${get_year} and [line sql dicomment karena error ketika ada kasus edit tanggal ke tahun sebelumnya pada existing transaksi]*/
 	                    tranid = '${doc_number}'`
 
         if (context.type == "edit") {
@@ -98,9 +98,13 @@ define(["N/record", "N/query", "N/search", "N/format"], function (record, query,
     }
 
     function beforeSubmit(context) {
+
+      log.debug("context.type", context.type)
         var loadRec = context.newRecord;
 
-        if (context.type != "delete") {
+      const contextType = ["delete", "xedit"]
+
+        if (!contextType.includes(context.type)) {
 
             var recId = loadRec.id;
 
@@ -119,6 +123,7 @@ define(["N/record", "N/query", "N/search", "N/format"], function (record, query,
             // log.debug("formatted_date", formatted_date)
 
             var get_year = (formatted_date.split("/")[2]).substring(2);
+            log.debug("get_year",get_year)
 
             var get_subsidiary = loadRec.getValue("subsidiary");
             var get_subsidiary_suffix = search.lookupFields({
@@ -147,6 +152,8 @@ define(["N/record", "N/query", "N/search", "N/format"], function (record, query,
             // log.debug("type record", getRecType);
             // var getTransNumber = (loadRec.getValue('transactionnumber')).split("/")[2];
             // log.debug("getTransNumber", getTransNumber)
+
+            log.debug("generate_running_number",generate_running_number)
 
             var set_external_id = loadRec.setValue('externalid', generate_running_number);
             var set_check = loadRec.setValue('tranid', generate_running_number);
@@ -188,7 +195,7 @@ define(["N/record", "N/query", "N/search", "N/format"], function (record, query,
         if (context.type == "create" || context.type == "edit") {
             var loadRec = context.newRecord;
 
-            log.debug("loadRec", loadRec)
+            // log.debug("loadRec", loadRec)
 
             if (loadRec.id) {
 
@@ -198,7 +205,7 @@ define(["N/record", "N/query", "N/search", "N/format"], function (record, query,
                     id: loadRec.id,
                 })
 
-                var get_external_id = rec.getValue("externalid");
+                // var get_external_id = rec.getValue("externalid");
                 var get_tran_id = rec.getValue("tranid");
 
                 // log.debug("get_external_id", get_external_id)
